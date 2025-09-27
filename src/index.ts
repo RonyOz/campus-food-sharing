@@ -16,6 +16,10 @@ app.use(`${baseUrl}/users`, userRouter)
 app.use(`${baseUrl}/orders`, orderRouter)
 app.use(`${baseUrl}/products`, productRouter)
 
+app.listen(port, ()=>{
+    console.log(`Server running on ${port} port`)
+})
+
 
 // db.then(()=>{
 //     app.listen(port, ()=>{
