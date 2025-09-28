@@ -1,5 +1,8 @@
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import type { Express } from 'express';
 
-const doc ={
+const options = {
 	definition: {
 		openapi: '3.0.0',
 		info: {
@@ -14,10 +17,14 @@ const doc ={
 			},
 		],
 	},
-	apis: ['../routes/*.ts'], 
-}
+	apis: ['./src/routes/*.ts'], 
+};
 
-const outputFile = '../swagger-output.json'; 
-const endpointsFiles = ['../routes/*.ts'];
+const specs = swaggerJsdoc(options);
 
+export const setupSwagger = (app: Express) => {
+	app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+	console.log('Swagger docs available at http://localhost:3000/api-docs');
+};
 
+export { specs };
