@@ -1,3 +1,4 @@
+ 
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
@@ -8,7 +9,8 @@ class SecurityService {
     }
 
     async generateToken(_id: mongoose.Types.ObjectId, email: string, role: string) {
-        return await jwt.sign({ _id, email, role }, 'secret', { expiresIn: '1h' });
+        const secret = process.env.JWT_SECRET || 'secret';
+        return await jwt.sign({ _id, email, role }, secret, { expiresIn: '1h' });
     }
     
     async comparePassword(incommingPassword: string, currentPassword: string) {

@@ -4,8 +4,17 @@ import { auth, authorizeRoles } from "../middlewares/auth.middleware";
 
 export const orderRouter = Router();
 
-orderRouter.get("/", orderController.getAllOrders,auth,authorizeRoles(['admin']));
-orderRouter.get("/:id", orderController.getOrderById,auth);
-orderRouter.post("/", orderController.createOrder,auth);
-orderRouter.put("/:id", orderController.updateOrder,auth);
-orderRouter.delete("/:id", orderController.deleteOrder,auth);
+// Listar todos (solo admin)
+orderRouter.get("/", auth, authorizeRoles(['admin']), orderController.getAllOrders);
+
+// Ver detalle (auth; visibilidad se validará en el controlador)
+orderRouter.get("/:id", auth, orderController.getOrderById);
+
+// Crear pedido (solo buyer)
+orderRouter.post("/", auth, authorizeRoles(['buyer']), orderController.createOrder);
+
+// Cambiar estado (solo seller/admin) -> reglas exactas en controlador
+orderRouter.put("/:id/status", auth, authorizeRoles(['seller','admin']), orderController.updateOrder);
+
+// Cancelar pedido (buyer si pending; admin siempre) -> validar en controlador
+orderRouter.delete("/:id", auth, orderController.deleteOrder);

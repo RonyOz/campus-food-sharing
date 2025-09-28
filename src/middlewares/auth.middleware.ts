@@ -10,7 +10,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
     token = token.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const secret = process.env.JWT_SECRET || 'secret';
+    const decoded = jwt.verify(token, secret);
     req.body.user = decoded;
     next();
   } catch (error) {
@@ -27,4 +28,4 @@ export const authorizeRoles = (allowRoles: UserRole[]) => {
     }
     next();
   }
-} 
+}

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { productController } from "../controllers/product.controller";
-import { auth } from "../middlewares/auth.middleware";
+import { auth, authorizeRoles } from "../middlewares/auth.middleware";
 
 export const productRouter = Router();
 
 productRouter.get("/", productController.getAllProducts);
 productRouter.get("/:id", productController.getProductById);
-productRouter.post("/", productController.createProduct,auth);
-productRouter.put("/:id", productController.updateProduct,auth);
-productRouter.delete("/:id", productController.deleteProduct,auth);
+productRouter.post("/", auth, authorizeRoles(['seller','admin']), productController.createProduct);
+productRouter.put("/:id", auth, authorizeRoles(['seller','admin']), productController.updateProduct);
+productRouter.delete("/:id", auth, authorizeRoles(['seller','admin']), productController.deleteProduct);

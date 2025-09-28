@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export type OrderStatus = 'pending' | 'completed' | 'canceled';
+export type OrderStatus = 'pending' | 'accepted' | 'delivered' | 'canceled';
 
 export interface IOrder {
     buyerId: mongoose.Types.ObjectId;
@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema<IOrderDocument>(
                 quantity: { type: Number, required: true, min: 1 },
             }
         ],
-        status: { type: String, enum: ['pending', 'completed', 'canceled'], default: "pending" },
+        status: { type: String, enum: ['pending', 'accepted', 'delivered', 'canceled'], default: "pending" },
     },
     {
         timestamps: true,
