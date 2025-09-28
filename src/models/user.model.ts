@@ -9,9 +9,9 @@ export interface IUser {
     role: UserRole;
 }
 
-export interface IUserDocument extends IUser, mongoose.Document { }
+export interface UserDocument extends IUser, mongoose.Document { }
 
-const UserSchema = new mongoose.Schema<IUserDocument>(
+const UserSchema = new mongoose.Schema<UserDocument>(
     {
         username: { type: String, required: true, unique: true },
         email: { type: String, required: true, unique: true },
@@ -24,4 +24,4 @@ const UserSchema = new mongoose.Schema<IUserDocument>(
     },
 );
 
-export const UserModel = mongoose.model<IUserDocument>('User', UserSchema);
+export const UserModel = mongoose.model<UserDocument>('User', UserSchema);
