@@ -53,8 +53,7 @@ class OrderService {
 
   // Obtener detalle con control de acceso
   async getOrderById(orderId: string, user: JwtUser) {
-    const found = await OrderModel.findById(orderId);
-    const order = found ? await (found as any).populate('items.productId') : null;
+    const order = await OrderModel.findById(orderId).populate('items.productId');
     if (!order) return { order: null, error: 'Order not found', status: 404 } as const;
 
     if (user.role === 'admin') return { order } as const;
@@ -67,7 +66,7 @@ class OrderService {
     }
 
     // seller: debe tener al menos un producto propio en la orden
-    const sellerProductIds = await (ProductModel.find({ sellerId: user._id }) as any).distinct('_id');
+    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
     const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
     return { order } as const;
@@ -123,7 +122,7 @@ class OrderService {
 
     // seller: verificación de ownership INDIRECTO
     // Un seller solo puede actuar si la orden incluye al menos un producto suyo.
-    const sellerProductIds = await (ProductModel.find({ sellerId: user._id }) as any).distinct('_id');
+    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
     const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
 
@@ -169,7 +168,7 @@ class OrderService {
     }
 
     // seller: validar que la orden tenga al menos un producto del seller
-    const sellerProductIds = await (ProductModel.find({ sellerId: user._id }) as any).distinct('_id');
+    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
     const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
 
