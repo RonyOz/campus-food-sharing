@@ -16,8 +16,21 @@ const options = {
 				description: 'Servidor local',
 			},
 		],
+		components: {
+			schemas: {
+				User: {
+					type: 'object',
+					properties: {
+						_id: { type: 'string', example: '6512f1c2e1b2a3c4d5e6f7a8' },
+						username: { type: 'string', example: 'Juan Perez' },
+						email: { type: 'string', example: 'juan@example.com' },
+						role: { type: 'string', example: 'buyer' },
+					},
+				},
+			},
+		},
 	},
-	apis: ['./src/routes/*.ts'], 
+	apis: ['./src/routes/*.ts'],
 };
 
 const specs = swaggerJsdoc(options);
