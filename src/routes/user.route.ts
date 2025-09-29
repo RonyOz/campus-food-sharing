@@ -2,76 +2,7 @@ import { Router } from "express";
 import { userController } from "../controllers/user.controller";
 import { auth, authorizeRoles } from "../middlewares/auth.middleware";
 
-export const userRouter = Router();
-
-/**
- * @openapi
- * /users/login:
- *   post:
- *     summary: Iniciar sesión de usuario
- *     tags: [Users]
- *     description: Permite a un usuario autenticarse en la plataforma. Devuelve un token si las credenciales son válidas.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email, password]
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
- *           example:
- *             email: user@example.com
- *             password: secret123
- *     responses:
- *       200:
- *         description: Autenticación exitosa. Devuelve token y datos del usuario.
- *       400:
- *         description: Credenciales inválidas.
- */
-userRouter.post("/login", userController.login);
-
-/**
- * @openapi
- * /users/signup:
- *   post:
- *     summary: Registro de usuario
- *     tags: [Users]
- *     description: Permite registrar un nuevo usuario en la plataforma. Devuelve el usuario creado y un token.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [name, email, password]
- *             properties:
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 format: password
- *           example:
- *             name: Juan Perez
- *             email: juan@example.com
- *             password: secret123
- *     responses:
- *       201:
- *         description: Usuario creado correctamente. Devuelve usuario y token.
- *       400:
- *         description: Datos inválidos.
- *       409:
- *         description: El email ya está registrado.
- */
-userRouter.post("/signup", userController.signup);
+export const userRouter = Router()
 
 /**
  * @openapi
@@ -79,18 +10,56 @@ userRouter.post("/signup", userController.signup);
  *   get:
  *     summary: Listar todos los usuarios
  *     tags: [Users]
- *     description: Devuelve una lista de todos los usuarios. Solo accesible para administradores.
+ *     description: Devuelve un array con todos los usuarios registrados. Solo accesible para administradores.
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuarios.
- *       401:
- *         description: No autorizado.
- *       403:
- *         description: Acceso denegado.
+ *         description: users array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: error
  */
-userRouter.get("/", userController.getAllUsers,auth,authorizeRoles(['admin']));
+userRouter.get("/", auth, authorizeRoles(['admin']), userController.getAllUsers);
+
+
+/**
+ * @openapi
+ * /users:
+ *   post:
+ *     summary: Crear un usuario (admin)
+ *     tags: [Users]
+ *     description: Permite a un administrador crear un usuario manualmente. El usuario creado se devuelve en la respuesta.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: User data is required
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User data is required
+ *       500:
+ *         description: error
+ */
+userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser);
 
 /**
  * @openapi
@@ -98,7 +67,7 @@ userRouter.get("/", userController.getAllUsers,auth,authorizeRoles(['admin']));
  *   get:
  *     summary: Obtener usuario por ID
  *     tags: [Users]
- *     description: Devuelve los datos de un usuario específico. Requiere autenticación.
+ *     description: Devuelve los datos de un usuario específico por su ID. Requiere autenticación.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -110,13 +79,27 @@ userRouter.get("/", userController.getAllUsers,auth,authorizeRoles(['admin']));
  *         description: ID del usuario
  *     responses:
  *       200:
- *         description: Datos del usuario.
- *       401:
- *         description: No autorizado.
+ *         description: user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
-userRouter.get("/:id", userController.getUserById,auth);
+userRouter.get("/:id", auth, userController.getUserById);
 
 /**
  * @openapi
@@ -124,7 +107,7 @@ userRouter.get("/:id", userController.getUserById,auth);
  *   put:
  *     summary: Actualizar usuario
  *     tags: [Users]
- *     description: Actualiza los datos de un usuario existente. Requiere autenticación.
+ *     description: Actualiza los datos de un usuario existente por su ID. Requiere autenticación.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -148,15 +131,33 @@ userRouter.get("/:id", userController.getUserById,auth);
  *                 format: email
  *     responses:
  *       200:
- *         description: Usuario actualizado.
+ *         description: updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       400:
- *         description: Datos inválidos.
- *       401:
- *         description: No autorizado.
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
+ *       422:
+ *         description: Update data is required
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Update data is required
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
-userRouter.put("/:id", userController.updateUser,auth);
+userRouter.put("/:id", auth, userController.updateUser);
 
 /**
  * @openapi
@@ -164,7 +165,7 @@ userRouter.put("/:id", userController.updateUser,auth);
  *   delete:
  *     summary: Eliminar usuario
  *     tags: [Users]
- *     description: Elimina un usuario por ID. Solo accesible para administradores.
+ *     description: Elimina un usuario por su ID. Solo accesible para administradores.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -175,13 +176,21 @@ userRouter.put("/:id", userController.updateUser,auth);
  *           type: string
  *         description: ID del usuario
  *     responses:
- *       200:
- *         description: Usuario eliminado.
- *       401:
- *         description: No autorizado.
- *       403:
- *         description: Acceso denegado.
+ *       204:
+ *         description: No Content
+ *       400:
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
-userRouter.delete("/:id", userController.deleteUser,auth,authorizeRoles(['admin']));
+userRouter.delete("/:id", auth, authorizeRoles(['admin']), userController.deleteUser);
