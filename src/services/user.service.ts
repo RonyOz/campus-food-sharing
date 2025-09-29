@@ -51,6 +51,11 @@ class UserService {
 		return user;
 	}
 
+	async deleteUser(id: string) {
+		const result = await UserModel.findByIdAndDelete(id);
+		return result;
+	}
+
 	async getAllUsers() {
 		const users = await UserModel.find();
 		return users;
@@ -72,6 +77,11 @@ class UserService {
 		}
 		const user = await this.getUserByEmail(decoded.email);
 		return user;
+	}
+
+	async updateUser(id: string, updates: Partial<UserDocument>) {
+		const updatedUser = await UserModel.findByIdAndUpdate(id, updates, { new: true });
+		return updatedUser;
 	}
 
 }
