@@ -60,7 +60,30 @@ class ProductController{
     }
   }
 
-  async updateProduct(req: Request, res: Response) {}
+
+    async updateProduct(req: Request, res: Response) {
+        try {
+            const productId= req.params.id;
+            if (!productId){
+                return res.status(404).json({message: "Product Id is missing"});
+            }
+
+            const updates= req.body;
+            if(!updates || Object.keys(updates).length === 0){
+                return res.status(400).json({message: "Update data is required"});
+            }
+
+            const updated= await productService.updateProduct(productId, updates);
+
+            if (!updated){
+                return res.status(404).json({message: "Product not found"});
+            }
+            res.status(200).json(updated);
+        }catch(error){
+            res.status(500).json(error);
+        }
+
+    }
 
   async deleteProduct(req: Request, res: Response) {}
 
