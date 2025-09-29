@@ -47,8 +47,47 @@ class UserService {
 	}
 
 	async createUser(userData: UserDocument) {
+		// Validar campos requeridos
+		if (!userData.email || !userData.password || !userData.username || !userData.role) {
+			throw new Error("Username, email, password, and role are required");
+		}
+
+		// Validar formato de email
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(userData.email)) {
+			throw new Error("Invalid email format");
+		}
+
+		const existingUser = await this.getUserByEmail(userData.email);
+		if (existingUser) {
+			return { user: null, error: "User with this email already exists", status: 409 };
+		}
+
 		const user = await UserModel.create(userData);
 		return user;
+	}
+
+	async createUserByAdmin(userData: Partial<UserDocument>) {
+		if (!userData.email || !userData.password || !userData.username || !userData.role) {
+			return { user: null, error: "Username, email, password, and role are required", status: 400 };
+		}
+
+		const existingUser = await this.getUserByEmail(userData.email);
+		if (existingUser) {
+			return { user: null, error: "User with this email already exists", status: 409 };
+		}
+
+		const encryptedPassword = await securityService.encryptPassword(userData.password);
+
+		const newUser = await UserModel.create({
+			...userData,
+			password: encryptedPassword,
+		});
+
+		const userObject = newUser.toObject();
+		delete userObject.password;
+
+		return { user: userObject, error: null, status: 201 };
 	}
 
 	async deleteUser(id: string) {

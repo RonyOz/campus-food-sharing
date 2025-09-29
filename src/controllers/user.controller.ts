@@ -11,11 +11,11 @@ class UserController {
 		} catch (error) {
 			res.status(500).json(error);
 		}
-	 }
+	}
 
 	async getUserById(req: Request, res: Response) {
 		try {
-			
+
 			const userId: string | undefined = req.params.id;
 
 			if (!userId) {
@@ -47,6 +47,25 @@ class UserController {
 		}
 	}
 
+	async createUserByAdmin(req: Request, res: Response) {
+		try {
+			const data = req.body;
+			if (!data || Object.keys(data).length === 0) {
+				return res.status(400).json({ message: "User data is required" });
+			}
+
+			const { user, error, status } = await userService.createUserByAdmin(data);
+
+			if (error) {
+				return res.status(status!).json({ message: error });
+			}
+
+			res.status(201).json(user);
+		} catch (error) {
+			res.status(500).json(error);
+		}
+	}
+
 	async updateUser(req: Request, res: Response) {
 		try {
 			const userId = req.params.id;
@@ -58,7 +77,7 @@ class UserController {
 				return res.status(400).json({ message: "Update data is required" });
 			}
 			const updated = await userService.updateUser(userId, updates);
-			
+
 			if (!updated) {
 				return res.status(404).json({ message: "User not found" });
 			}
