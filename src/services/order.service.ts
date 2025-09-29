@@ -11,7 +11,14 @@ class OrderService {
       return { order: null, error: 'Items are required', status: 400 } as const;
     }
 
-    // Validar productos existen y disponibles, y cantidades válidas
+    // Validar cantidades primero para evitar consultas innecesarias
+    for (const it of items) {
+      if (!it.quantity || it.quantity < 1) {
+        return { order: null, error: 'Quantity must be >= 1 for all items', status: 400 } as const;
+      }
+    }
+
+    // Validar productos existen y disponibles
     const productIds = items.map(i => new mongoose.Types.ObjectId(i.productId));
     const products = await ProductModel.find({ _id: { $in: productIds } });
     if (products.length !== items.length) {
@@ -21,12 +28,6 @@ class OrderService {
     const unavailable = products.find(p => !p.available);
     if (unavailable) {
       return { order: null, error: `Product ${(unavailable._id as mongoose.Types.ObjectId).toString()} is not available`, status: 400 } as const;
-    }
-
-    for (const it of items) {
-      if (!it.quantity || it.quantity < 1) {
-        return { order: null, error: 'Quantity must be >= 1 for all items', status: 400 } as const;
-      }
     }
 
     const normalizedItems = items.map(it => ({ productId: new mongoose.Types.ObjectId(it.productId), quantity: it.quantity }));
@@ -46,14 +47,16 @@ class OrderService {
       return { orders } as const;
     }
     // seller: pedidos que contengan productos del seller
-    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
+    const sellerProductsForList = await ProductModel.find({ sellerId: user._id }).select('_id');
+    const sellerProductIds = sellerProductsForList.map(p => p._id as mongoose.Types.ObjectId);
     const orders = await OrderModel.find({ 'items.productId': { $in: sellerProductIds } }).populate('items.productId');
     return { orders } as const;
   }
 
   // Obtener detalle con control de acceso
   async getOrderById(orderId: string, user: JwtUser) {
-    const order = await OrderModel.findById(orderId).populate('items.productId');
+    const found = await OrderModel.findById(orderId);
+    const order = found ? await found.populate('items.productId') : null;
     if (!order) return { order: null, error: 'Order not found', status: 404 } as const;
 
     if (user.role === 'admin') return { order } as const;
@@ -66,8 +69,9 @@ class OrderService {
     }
 
     // seller: debe tener al menos un producto propio en la orden
-    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
-    const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
+    const sellerProductsForDetail = await ProductModel.find({ sellerId: user._id }).select('_id');
+    const sellerProductIds: mongoose.Types.ObjectId[] = sellerProductsForDetail.map(p => p._id as mongoose.Types.ObjectId);
+    const containsSellerProduct = order.items.some(it => sellerProductIds.some((id: mongoose.Types.ObjectId | string) => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
     return { order } as const;
   }
@@ -122,8 +126,9 @@ class OrderService {
 
     // seller: verificación de ownership INDIRECTO
     // Un seller solo puede actuar si la orden incluye al menos un producto suyo.
-    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
-    const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
+    const sellerProductsForUpdate = await ProductModel.find({ sellerId: user._id }, '_id');
+    const sellerProductIds: mongoose.Types.ObjectId[] = sellerProductsForUpdate.map(p => p._id as mongoose.Types.ObjectId);
+    const containsSellerProduct = order.items.some(it => sellerProductIds.some((id: mongoose.Types.ObjectId | string) => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
 
     // 5) Reglas específicas del seller
@@ -168,8 +173,9 @@ class OrderService {
     }
 
     // seller: validar que la orden tenga al menos un producto del seller
-    const sellerProductIds = await ProductModel.find({ sellerId: user._id }).distinct('_id');
-    const containsSellerProduct = order.items.some(it => sellerProductIds.some(id => id.toString() === it.productId.toString()));
+    const sellerProductsForCancel = await ProductModel.find({ sellerId: user._id }, '_id');
+    const sellerProductIds: mongoose.Types.ObjectId[] = sellerProductsForCancel.map(p => p._id as mongoose.Types.ObjectId);
+    const containsSellerProduct = order.items.some(it => sellerProductIds.some((id: mongoose.Types.ObjectId | string) => id.toString() === it.productId.toString()));
     if (!containsSellerProduct) return { order: null, error: 'Forbidden', status: 403 } as const;
 
     // Solo permitir cancelar si el estado actual es pending o accepted

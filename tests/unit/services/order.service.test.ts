@@ -13,7 +13,8 @@ jest.mock('../../../src/models/order.model', () => ({
 
 jest.mock('../../../src/models/product.model', () => ({
   ProductModel: {
-    find: jest.fn(() => ({ distinct: jest.fn() })),
+    // Default mock; individual tests will override with mockResolvedValueOnce
+    find: jest.fn(),
   },
 }));
 
@@ -134,10 +135,8 @@ describe('OrderService', () => {
         items: [{ productId: sellerProductId, quantity: 1 }],
       });
       (OrderModel.findById as jest.Mock).mockResolvedValueOnce(orderDoc);
-      // Mock ProductModel.find({ sellerId }).distinct('_id') => [sellerProductId]
-      (ProductModel.find as unknown as jest.Mock).mockResolvedValueOnce({
-        distinct: jest.fn().mockResolvedValueOnce([sellerProductId]),
-      });
+      // Mock ProductModel.find({ sellerId }, '_id') => [{ _id: sellerProductId }]
+      (ProductModel.find as unknown as jest.Mock).mockResolvedValueOnce([{ _id: sellerProductId }]);
       const seller: JwtUser = { _id: sellerId.toString(), email: 's@s.com', role: 'seller' };
       const result = await orderService.updateStatus('o1', seller, 'accepted');
       expect(result.order).toBeTruthy();
@@ -160,9 +159,8 @@ describe('OrderService', () => {
       const sellerProductId = new mongoose.Types.ObjectId();
       const orderDoc = makeOrderDoc({ status: 'pending', items: [{ productId: sellerProductId, quantity: 1 }] });
       (OrderModel.findById as jest.Mock).mockResolvedValueOnce(orderDoc);
-      (ProductModel.find as unknown as jest.Mock).mockResolvedValueOnce({
-        distinct: jest.fn().mockResolvedValueOnce([sellerProductId]),
-      });
+      // Mock ProductModel.find({ sellerId }, '_id') => [{ _id: sellerProductId }]
+      (ProductModel.find as unknown as jest.Mock).mockResolvedValueOnce([{ _id: sellerProductId }]);
       const seller: JwtUser = { _id: new mongoose.Types.ObjectId().toString(), email: 's@s.com', role: 'seller' };
       const result = await orderService.cancelOrder('o1', seller);
       expect(result.order).toBeTruthy();
