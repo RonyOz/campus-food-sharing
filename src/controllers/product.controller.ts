@@ -4,7 +4,15 @@ import type {IProductDocument} from "../models/product.model";
 
 class ProductController{
 
-    async getAllProducts(req:Request, res:Response) {}
+    async getAllProducts(req:Request, res:Response) {
+        try{
+            const products = await productService.getAllProducts();
+            res.status(200).json(products);
+        }catch(error){
+            res.status(500).json(error);
+
+        }
+    }
 
     async getProductById(req:Request, res:Response) {}
 
