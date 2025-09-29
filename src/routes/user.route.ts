@@ -10,20 +10,56 @@ export const userRouter = Router()
  *   get:
  *     summary: Listar todos los usuarios
  *     tags: [Users]
- *     description: Devuelve una lista de todos los usuarios. Solo accesible para administradores.
+ *     description: Devuelve un array con todos los usuarios registrados. Solo accesible para administradores.
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuarios.
- *       401:
- *         description: No autorizado.
- *       403:
- *         description: Acceso denegado.
+ *         description: users array
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: error
  */
 userRouter.get("/", auth, authorizeRoles(['admin']), userController.getAllUsers);
 
-userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser);  
+
+/**
+ * @openapi
+ * /users:
+ *   post:
+ *     summary: Crear un usuario (admin)
+ *     tags: [Users]
+ *     description: Permite a un administrador crear un usuario manualmente. El usuario creado se devuelve en la respuesta.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/User'
+ *     responses:
+ *       201:
+ *         description: user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: User data is required
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User data is required
+ *       500:
+ *         description: error
+ */
+userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser);
 
 /**
  * @openapi
@@ -31,7 +67,7 @@ userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser)
  *   get:
  *     summary: Obtener usuario por ID
  *     tags: [Users]
- *     description: Devuelve los datos de un usuario específico. Requiere autenticación.
+ *     description: Devuelve los datos de un usuario específico por su ID. Requiere autenticación.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -43,11 +79,25 @@ userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser)
  *         description: ID del usuario
  *     responses:
  *       200:
- *         description: Datos del usuario.
- *       401:
- *         description: No autorizado.
+ *         description: user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       400:
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
 userRouter.get("/:id", auth, userController.getUserById);
 
@@ -57,7 +107,7 @@ userRouter.get("/:id", auth, userController.getUserById);
  *   put:
  *     summary: Actualizar usuario
  *     tags: [Users]
- *     description: Actualiza los datos de un usuario existente. Requiere autenticación.
+ *     description: Actualiza los datos de un usuario existente por su ID. Requiere autenticación.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -81,13 +131,31 @@ userRouter.get("/:id", auth, userController.getUserById);
  *                 format: email
  *     responses:
  *       200:
- *         description: Usuario actualizado.
+ *         description: updated user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       400:
- *         description: Datos inválidos.
- *       401:
- *         description: No autorizado.
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
+ *       422:
+ *         description: Update data is required
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Update data is required
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
 userRouter.put("/:id", auth, userController.updateUser);
 
@@ -97,7 +165,7 @@ userRouter.put("/:id", auth, userController.updateUser);
  *   delete:
  *     summary: Eliminar usuario
  *     tags: [Users]
- *     description: Elimina un usuario por ID. Solo accesible para administradores.
+ *     description: Elimina un usuario por su ID. Solo accesible para administradores.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -108,13 +176,21 @@ userRouter.put("/:id", auth, userController.updateUser);
  *           type: string
  *         description: ID del usuario
  *     responses:
- *       200:
- *         description: Usuario eliminado.
- *       401:
- *         description: No autorizado.
- *       403:
- *         description: Acceso denegado.
+ *       204:
+ *         description: No Content
+ *       400:
+ *         description: User ID is missing
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User ID is missing
  *       404:
- *         description: Usuario no encontrado.
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: User not found
+ *       500:
+ *         description: error
  */
 userRouter.delete("/:id", auth, authorizeRoles(['admin']), userController.deleteUser);
