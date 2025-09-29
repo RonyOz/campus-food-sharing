@@ -21,7 +21,9 @@ export const userRouter = Router()
  *       403:
  *         description: Acceso denegado.
  */
-userRouter.get("/",auth,authorizeRoles(['admin']), userController.getAllUsers);
+userRouter.get("/", auth, authorizeRoles(['admin']), userController.getAllUsers);
+
+userRouter.post("/", auth, authorizeRoles(['admin']), userController.createUser);  
 
 /**
  * @openapi
@@ -47,7 +49,7 @@ userRouter.get("/",auth,authorizeRoles(['admin']), userController.getAllUsers);
  *       404:
  *         description: Usuario no encontrado.
  */
-userRouter.get("/:id", userController.getUserById,auth);
+userRouter.get("/:id", auth, userController.getUserById);
 
 /**
  * @openapi
@@ -87,7 +89,7 @@ userRouter.get("/:id", userController.getUserById,auth);
  *       404:
  *         description: Usuario no encontrado.
  */
-userRouter.put("/:id", userController.updateUser,auth);
+userRouter.put("/:id", auth, userController.updateUser);
 
 /**
  * @openapi
@@ -115,4 +117,4 @@ userRouter.put("/:id", userController.updateUser,auth);
  *       404:
  *         description: Usuario no encontrado.
  */
-userRouter.delete("/:id", auth,authorizeRoles(['admin']),userController.deleteUser);
+userRouter.delete("/:id", auth, authorizeRoles(['admin']), userController.deleteUser);
