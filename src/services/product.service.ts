@@ -22,6 +22,12 @@ class ProductService {
     return updatedProduct;
 
   }
+
+  async deleteProduct(id: string){
+    const result = await ProductModel.findByIdAndDelete(id);
+    return result;
+
+  }
 }
 
 export const productService = new ProductService();

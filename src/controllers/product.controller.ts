@@ -85,7 +85,22 @@ class ProductController{
 
     }
 
-  async deleteProduct(req: Request, res: Response) {}
+    async deleteProduct(req: Request, res: Response) {
+        try {
+            const productId = req.params.id;
+            if(!productId){
+                return res.status(400).json({message: "Product ID is required"});
+            }
+            const deleted = await productService.deleteProduct(productId);
+            if (!deleted){
+                return res.status(404).json({message: "product not found"});
+            }
+            res.status(204).send();
+        }catch(error){
+            res.status(500).json(error);
+        }
+        
+    }
 
 }
 
