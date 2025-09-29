@@ -12,7 +12,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     token = token.replace('Bearer ', '');
     const secret = process.env.JWT_SECRET || 'secret';
     const decoded = jwt.verify(token, secret);
-    req.body.user = decoded;
+    (req as any).user = decoded;
     next();
   } catch (error) {
     res.status(403).json(error);
@@ -21,7 +21,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 
 export const authorizeRoles = (allowRoles: UserRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = req.body.user;
+    const user = (req as any).user;
     if (user && !allowRoles.includes(user.role)) {
       res.status(403).json({ message: `Forbidden, you are a ${user.role} and this service is only available for ${allowRoles}` });
       return;
