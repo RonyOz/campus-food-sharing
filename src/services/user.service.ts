@@ -56,6 +56,15 @@ class UserService {
 		return users;
 	}
 
+	async getUserByToken(token: string) {
+		const decoded = securityService.verifyToken(token);
+		if (!decoded) {
+			return null;
+		}
+		const user = await this.getUserByEmail(decoded.email);
+		return user;
+	}
+
 }
 
 export const userService = new UserService();
