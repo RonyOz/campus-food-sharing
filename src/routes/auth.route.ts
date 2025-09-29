@@ -71,3 +71,5 @@ authRouter.post("/login", authController.login);
  *         description: El email ya está registrado.
  */
 authRouter.post("/signup", authController.signup);
+
+authRouter.get("/profile", authController.getProfile);
