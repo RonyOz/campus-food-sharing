@@ -16,6 +16,15 @@ class SecurityService {
     async comparePassword(incommingPassword: string, currentPassword: string) {
         return await bcrypt.compare(incommingPassword, currentPassword);
     }
+
+    verifyToken(token: string) {
+        try {
+            const secret = process.env.JWT_SECRET || 'secret';
+            return jwt.verify(token, secret) as { id: string; email: string; role: string };
+        } catch (error) {
+            return null;
+        }
+    }
 }
 
 export const securityService = new SecurityService();
