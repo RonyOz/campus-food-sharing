@@ -9,9 +9,13 @@ class ProductService {
   }
 
   async getAllProducts() {
-      const products = await ProductModel.find();
-      return products;
-    }
+    const products = await ProductModel.find();
+    return products;
+  }
+
+  async getProductById(id: string){
+    return ProductModel.findById(id);
+  }
 }
 
 export const productService = new ProductService();
