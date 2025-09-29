@@ -12,7 +12,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
     token = token.replace('Bearer ', '');
     const secret = process.env.JWT_SECRET || 'secret';
     const decoded = jwt.verify(token, secret);
-    req.body.user = decoded;
+    (req as any).user = decoded; 
     next();
   } catch (error) {
     res.status(403).json(error);
