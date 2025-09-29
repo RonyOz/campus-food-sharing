@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authController } from "../controllers/auth.controller";
+import { auth } from "../middlewares/auth.middleware";
 
 export const authRouter = Router();
 
@@ -72,4 +73,4 @@ authRouter.post("/login", authController.login);
  */
 authRouter.post("/signup", authController.signup);
 
-authRouter.get("/profile", authController.getProfile);
+authRouter.get("/profile", auth,authController.getProfile);
