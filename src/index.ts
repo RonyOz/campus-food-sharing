@@ -1,6 +1,6 @@
 import express, { type Express } from "express";
 import { mongoDB } from "./lib/connectionDB";
-import { authRouter, orderRouter, productRouter, userRouter } from "./routes";
+import { authRouter, orderRouter, productRouter, userRouter, sellerRouter } from "./routes";
 import { setupSwagger } from "./lib/swagger";
 
 const app: Express = express();
@@ -19,6 +19,7 @@ app.use(`${baseUrl}/auth`, authRouter)
 app.use(`${baseUrl}/users`, userRouter)
 app.use(`${baseUrl}/orders`, orderRouter)
 app.use(`${baseUrl}/products`, productRouter)
+app.use(`${baseUrl}/seller`, sellerRouter)
 
 mongoDB.then(() => {
 	app.listen(port, () => {
