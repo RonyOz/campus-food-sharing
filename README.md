@@ -29,6 +29,8 @@ Puedes acceder a la API desplegada en producción o entorno demo aquí:
 
 > [https://cfs-api.onrender.com/](https://cfs-api.onrender.com/)
 
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=https://cfs-api.onrender.com/api-docs/" alt="QR code for API docs" width="140" height="140" />
+
 ## Características Principales
 
 - **Gestión de Usuarios**: Registro, inicio de sesión y administración de perfiles de usuario.
