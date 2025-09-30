@@ -12,6 +12,18 @@ const baseUrl: string = '/api/v1';
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+app.use((req, res, next) => {
+	const { method, originalUrl, body, query, params } = req;
+	const start = Date.now();
+
+	res.on('finish', () => {
+		const duration = Date.now() - start;
+		console.log(`[${new Date().toISOString()}] ${method} ${originalUrl} - Status: ${res.statusCode} - ${duration}ms`);
+	});
+
+	next();
+});
+
 // Setup Swagger
 setupSwagger(app);
 
