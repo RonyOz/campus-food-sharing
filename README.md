@@ -14,20 +14,20 @@
 
 ---
 
-## Despliegue
-
-Puedes acceder a la API desplegada en producción o entorno demo aquí:
-
-> [https://campus-food-sharing-demo.vercel.app](https://campus-food-sharing-demo.vercel.app)
-
----
-
 ## Autores
 
 - David Artunduaga ([@David104087](https://github.com/David104087))
 - Jennifer Castro ([@JenniferCastrocd](https://github.com/JenniferCastrocd))
 - Rony Ordoñez ([@RonyOz](https://github.com/RonyOz))
 - Juan de la Pava ([@JuanJDlp](https://github.com/JuanJDlp))
+  
+---
+
+## Despliegue
+
+Puedes acceder a la API desplegada en producción o entorno demo aquí:
+
+> [https://cfs-api.onrender.com/](https://cfs-api.onrender.com/)
 
 ## Características Principales
 
