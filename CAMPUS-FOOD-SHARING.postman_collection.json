@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "5a2bb405-77eb-405c-bff1-9f37b0cdfea0",
+		"_postman_id": "4a3d0aef-f1da-4980-99d5-c54deb7cb924",
 		"name": "CAMPUS-FOOD-SHARING",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "48857260",
-		"_collection_link": "https://ronys-team.postman.co/workspace/Rony's-Team~cea67970-d29a-4808-88fa-c8c5feebf146/collection/32290862-5a2bb405-77eb-405c-bff1-9f37b0cdfea0?action=share&source=collection_link&creator=48857260"
+		"_collection_link": "https://ronys-team.postman.co/workspace/Rony's-Team~cea67970-d29a-4808-88fa-c8c5feebf146/collection/48857260-4a3d0aef-f1da-4980-99d5-c54deb7cb924?action=share&source=collection_link&creator=48857260"
 	},
 	"item": [
 		{
@@ -691,11 +691,22 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "PUT",
 						"header": [],
 						"body": {
@@ -922,179 +933,180 @@
 		},
 		{
 			"name": "DELETES",
-			"item": []
-		},
-		{
-			"name": "Cancel Order (Delete)",
-			"event": [
+			"item": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "Cancel Order (Delete)",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{admin_token}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/orders/{{order_id}}",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"orders",
-						"{{order_id}}"
-					]
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/{{order_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"orders",
+								"{{order_id}}"
+							]
+						},
+						"description": "Cancela una orden."
+					},
+					"response": []
 				},
-				"description": "Cancela una orden."
-			},
-			"response": []
-		},
-		{
-			"name": "Delete Product",
-			"event": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "Delete Product",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{seller_token}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/products/{{product_id}}",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"products",
-						"{{product_id}}"
-					]
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{seller_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/products/{{product_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"products",
+								"{{product_id}}"
+							]
+						},
+						"description": "Elimina un producto (seller o admin)."
+					},
+					"response": []
 				},
-				"description": "Elimina un producto (seller o admin)."
-			},
-			"response": []
-		},
-		{
-			"name": "Delete User Seller",
-			"event": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "Delete User Seller",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{admin_token}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/users/{{seller_id}}",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"users",
-						"{{seller_id}}"
-					]
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{seller_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{seller_id}}"
+							]
+						},
+						"description": "Elimina un usuario (solo admin)."
+					},
+					"response": []
 				},
-				"description": "Elimina un usuario (solo admin)."
-			},
-			"response": []
-		},
-		{
-			"name": "Delete User Buyer",
-			"event": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", function () {",
-							"    pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
+					"name": "Delete User Buyer",
+					"event": [
 						{
-							"key": "token",
-							"value": "{{admin_token}}",
-							"type": "string"
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
 						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/users/{{buyer_id}}",
-					"host": [
-						"{{baseUrl}}"
 					],
-					"path": [
-						"users",
-						"{{buyer_id}}"
-					]
-				},
-				"description": "Elimina un usuario (solo admin)."
-			},
-			"response": []
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users/{{buyer_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"users",
+								"{{buyer_id}}"
+							]
+						},
+						"description": "Elimina un usuario (solo admin)."
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
