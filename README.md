@@ -1,10 +1,3 @@
-# Autores
-
-- David Artunduaga ([@David104087](https://github.com/David104087))
-- Jennifer Castro ([@JenniferCastrocd](https://github.com/JenniferCastrocd))
-- Rony Ordoñez ([@RonyOz](https://github.com/RonyOz))
-- Juan de la Pava ([@JuanJDlp](https://github.com/JuanJDlp))
-  
 
 # Campus Food Sharing API
 
@@ -21,7 +14,20 @@
 
 ---
 
+## Despliegue
 
+Puedes acceder a la API desplegada en producción o entorno demo aquí:
+
+> [https://campus-food-sharing-demo.vercel.app](https://campus-food-sharing-demo.vercel.app)
+
+---
+
+## Autores
+
+- David Artunduaga ([@David104087](https://github.com/David104087))
+- Jennifer Castro ([@JenniferCastrocd](https://github.com/JenniferCastrocd))
+- Rony Ordoñez ([@RonyOz](https://github.com/RonyOz))
+- Juan de la Pava ([@JuanJDlp](https://github.com/JuanJDlp))
 
 ## Características Principales
 
@@ -32,7 +38,6 @@
 - **Seguridad**: Autenticación basada en JWT (JSON Web Tokens) para proteger las rutas.
 - **Documentación de API**: Documentación completa e interactiva generada con Swagger (OpenAPI).
 - **Alta Calidad de Código**: Cobertura de pruebas superior al **80%**, incluyendo pruebas unitarias y de integración.
-
 
 
 ## Stack Tecnológico
