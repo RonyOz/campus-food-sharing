@@ -84,7 +84,7 @@ class UserService {
 			password: encryptedPassword,
 		});
 
-		const userObject = newUser.toObject();
+		const userObject = newUser.toObject() as Omit<UserDocument, "password"> & { password?: string };
 		delete userObject.password;
 
 		return { user: userObject, error: null, status: 201 };
