@@ -23,13 +23,21 @@ function makeRes() {
   return res as Response & { status: jest.Mock; json: jest.Mock };
 }
 
-function makeReq(overrides: Partial<Request> = {}) {
-  return {
+function makeReq(overrides: Partial<Request> & { user?: JwtUser } = {}) {
+  const { user, ...restOverrides } = overrides;
+  const req = {
     body: {},
     params: {},
-    ...overrides,
+    ...restOverrides,
   } as unknown as Request;
+
+  if (user) {
+    (req as any).user = user;
+  }
+
+  return req;
 }
+
 
 describe('OrderController', () => {
   beforeEach(() => {
@@ -38,7 +46,7 @@ describe('OrderController', () => {
 
   describe('getOrderById', () => {
     it('400 when id missing', async () => {
-      const req = makeReq({ body: { user: { _id: 'u', email: 'e', role: 'buyer' } as JwtUser } });
+      const req = makeReq({ user: { _id: 'u', email: 'e', role: 'buyer' } });
       const res = makeRes();
       // @ts-ignore
       await orderController.getOrderById(req, res);
@@ -47,7 +55,7 @@ describe('OrderController', () => {
     });
 
     it('200 when service returns order', async () => {
-      const req = makeReq({ params: { id: 'o1' }, body: { user: { _id: 'u', email: 'e', role: 'admin' } as JwtUser } });
+      const req = makeReq({ params: { id: 'o1' }, user: { _id: 'u', email: 'e', role: 'admin' } });
       const res = makeRes();
       (orderService.getOrderById as jest.Mock).mockResolvedValueOnce({ order: { _id: 'o1' } });
       // @ts-ignore
@@ -58,7 +66,7 @@ describe('OrderController', () => {
     });
 
     it('propagates error and status from service', async () => {
-      const req = makeReq({ params: { id: 'o1' }, body: { user: { _id: 'u', email: 'e', role: 'buyer' } as JwtUser } });
+      const req = makeReq({ params: { id: 'o1' }, user: { _id: 'u', email: 'e', role: 'buyer' } });
       const res = makeRes();
       (orderService.getOrderById as jest.Mock).mockResolvedValueOnce({ order: null, error: 'Forbidden', status: 403 });
       // @ts-ignore
@@ -70,7 +78,7 @@ describe('OrderController', () => {
 
   describe('updateOrder', () => {
     it('400 when id missing', async () => {
-      const req = makeReq({ body: { user: { _id: 'u', email: 'e', role: 'seller' } as JwtUser, status: 'accepted' } });
+      const req = makeReq({ user: { _id: 'u', email: 'e', role: 'seller' }, body: { status: 'accepted' } });
       const res = makeRes();
       // @ts-ignore
       await orderController.updateOrder(req, res);
@@ -78,7 +86,7 @@ describe('OrderController', () => {
     });
 
     it('200 when service updates status', async () => {
-      const req = makeReq({ params: { id: 'o1' }, body: { user: { _id: 'u', email: 'e', role: 'admin' } as JwtUser, status: 'accepted' } });
+      const req = makeReq({ params: { id: 'o1' }, user: { _id: 'u', email: 'e', role: 'admin' }, body: { status: 'accepted' } });
       const res = makeRes();
       (orderService.updateStatus as jest.Mock).mockResolvedValueOnce({ order: { _id: 'o1', status: 'accepted' } });
       // @ts-ignore
@@ -91,7 +99,7 @@ describe('OrderController', () => {
 
   describe('deleteOrder', () => {
     it('400 when id missing', async () => {
-      const req = makeReq({ body: { user: { _id: 'u', email: 'e', role: 'buyer' } as JwtUser } });
+      const req = makeReq({ user: { _id: 'u', email: 'e', role: 'buyer' } });
       const res = makeRes();
       // @ts-ignore
       await orderController.deleteOrder(req, res);
@@ -99,7 +107,7 @@ describe('OrderController', () => {
     });
 
     it('200 when service cancels order', async () => {
-      const req = makeReq({ params: { id: 'o1' }, body: { user: { _id: 'u', email: 'e', role: 'buyer' } as JwtUser } });
+      const req = makeReq({ params: { id: 'o1' }, user: { _id: 'u', email: 'e', role: 'buyer' } });
       const res = makeRes();
       (orderService.cancelOrder as jest.Mock).mockResolvedValueOnce({ order: { _id: 'o1', status: 'canceled' } });
       // @ts-ignore
@@ -115,7 +123,7 @@ describe('OrderController Adicional', () => {
     const mockUser = { _id: new mongoose.Types.ObjectId().toString(), email: 'test@test.com', role: 'buyer' as const };
 
     it('getAllOrders debería manejar errores del servidor', async () => {
-        const req = makeReq({ body: { user: mockUser } });
+        const req = makeReq({ user: mockUser });
         const res = makeRes();
         const error = new Error("Server Error");
         (orderService.listOrders as jest.Mock).mockRejectedValue(error);
@@ -125,7 +133,7 @@ describe('OrderController Adicional', () => {
     });
 
     it('getOrderById debería manejar el caso donde el servicio retorna un error', async () => {
-        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser } });
+        const req = makeReq({ params: { id: 'order-id' }, user: mockUser });
         const res = makeRes();
         (orderService.getOrderById as jest.Mock).mockResolvedValue({ order: null, error: 'Forbidden', status: 403 });
         // @ts-ignore
@@ -135,7 +143,7 @@ describe('OrderController Adicional', () => {
     });
 
     it('createOrder debería manejar un error del servicio', async () => {
-        const req = makeReq({ body: { user: mockUser, items: [] } });
+        const req = makeReq({ user: mockUser, body: { items: [] } });
         const res = makeRes();
         (orderService.createOrder as jest.Mock).mockResolvedValue({ order: null, error: 'Items are required', status: 400 });
         await orderController.createOrder(req, res);
@@ -144,7 +152,7 @@ describe('OrderController Adicional', () => {
     });
 
     it('updateOrder debería manejar errores del servidor', async () => {
-        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser, status: 'accepted' } });
+        const req = makeReq({ params: { id: 'order-id' }, user: mockUser, body: { status: 'accepted' } });
         const res = makeRes();
         const error = new Error("Update failed");
         (orderService.updateStatus as jest.Mock).mockRejectedValue(error);
@@ -155,7 +163,7 @@ describe('OrderController Adicional', () => {
     });
 
     it('deleteOrder debería manejar errores del servidor', async () => {
-        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser } });
+        const req = makeReq({ params: { id: 'order-id' }, user: mockUser });
         const res = makeRes();
         const error = new Error("Cancel failed");
         (orderService.cancelOrder as jest.Mock).mockRejectedValue(error);
