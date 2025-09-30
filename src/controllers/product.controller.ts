@@ -55,7 +55,6 @@ class ProductController{
 
       res.status(201).json({ message: "Product created", product });
     } catch (error) {
-      console.error(error);
       res.status(500).json({ message: "Error creating product", error });
     }
   }

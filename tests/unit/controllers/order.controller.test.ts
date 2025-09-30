@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { orderController } from '../../../src/controllers/order.controller';
 import { orderService } from '../../../src/services/order.service';
 import type { Request, Response } from 'express';
@@ -108,4 +109,59 @@ describe('OrderController', () => {
       expect(res.json).toHaveBeenCalledWith({ order: { _id: 'o1', status: 'canceled' } });
     });
   });
+});
+
+describe('OrderController Adicional', () => {
+    const mockUser = { _id: new mongoose.Types.ObjectId().toString(), email: 'test@test.com', role: 'buyer' as const };
+
+    it('getAllOrders debería manejar errores del servidor', async () => {
+        const req = makeReq({ body: { user: mockUser } });
+        const res = makeRes();
+        const error = new Error("Server Error");
+        (orderService.listOrders as jest.Mock).mockRejectedValue(error);
+        await orderController.getAllOrders(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+
+    it('getOrderById debería manejar el caso donde el servicio retorna un error', async () => {
+        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser } });
+        const res = makeRes();
+        (orderService.getOrderById as jest.Mock).mockResolvedValue({ order: null, error: 'Forbidden', status: 403 });
+        // @ts-ignore
+        await orderController.getOrderById(req, res);
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Forbidden' });
+    });
+
+    it('createOrder debería manejar un error del servicio', async () => {
+        const req = makeReq({ body: { user: mockUser, items: [] } });
+        const res = makeRes();
+        (orderService.createOrder as jest.Mock).mockResolvedValue({ order: null, error: 'Items are required', status: 400 });
+        await orderController.createOrder(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: 'Items are required' });
+    });
+
+    it('updateOrder debería manejar errores del servidor', async () => {
+        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser, status: 'accepted' } });
+        const res = makeRes();
+        const error = new Error("Update failed");
+        (orderService.updateStatus as jest.Mock).mockRejectedValue(error);
+        // @ts-ignore
+        await orderController.updateOrder(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+
+    it('deleteOrder debería manejar errores del servidor', async () => {
+        const req = makeReq({ params: { id: 'order-id' }, body: { user: mockUser } });
+        const res = makeRes();
+        const error = new Error("Cancel failed");
+        (orderService.cancelOrder as jest.Mock).mockRejectedValue(error);
+        // @ts-ignore
+        await orderController.deleteOrder(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
 });

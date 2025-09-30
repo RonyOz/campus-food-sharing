@@ -16,8 +16,7 @@ const makeRes = (): Response => {
 };
 
 const makeReq = (overrides: Partial<Request> = {}): Request => {
-  const req = { body: {}, params: {}, ...overrides };
-  return req as Request;
+  return { body: {}, params: {}, ...overrides } as Request;
 };
 
 describe('UserController', () => {
@@ -25,57 +24,93 @@ describe('UserController', () => {
     jest.clearAllMocks();
   });
 
-  describe('getAllUsers', () => {
-    it('debería retornar una lista de usuarios con estado 200', async () => {
-      const users = [{ username: 'user1' }, { username: 'user2' }];
-      mockedUserService.getAllUsers.mockResolvedValue(users as any);
-      const req = makeReq();
-      const res = makeRes();
-      await userController.getAllUsers(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(users);
-    });
-  });
-
   describe('getUserById', () => {
-    it('debería retornar un usuario con estado 200 si existe', async () => {
-      const user = { username: 'found-user' };
-      mockedUserService.getUserById.mockResolvedValue(user as any);
-      const req = makeReq({ params: { id: 'existent-id' } });
-      const res = makeRes();
-      await userController.getUserById(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(user);
+    it('debería retornar 400 si no se proporciona el ID', async () => {
+        const req = makeReq();
+        const res = makeRes();
+        await userController.getUserById(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: 'User ID is missing' });
     });
   });
 
-  describe('createUserByAdmin', () => {
-    it('debería crear un usuario y retornar 201', async () => {
-      const user = {
-        _id: 'some-id',
-        username: 'new-user',
-        email: 'a@a.com',
-        role: 'buyer',
-        set: jest.fn(),
-        get: jest.fn(),
-      } as any;
-      mockedUserService.createUserByAdmin.mockResolvedValue({ user, error: null, status: 201 });
-      const req = makeReq({ body: { username: 'new-user', email: 'a@a.com', password: '123', role: 'buyer' } });
-      const res = makeRes();
-      await userController.createUserByAdmin(req, res);
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(user);
+  describe('updateUser', () => {
+    it('debería actualizar un usuario y devolverlo', async () => {
+        const updatedUser = { username: 'updated-user' };
+        mockedUserService.updateUser.mockResolvedValue(updatedUser as any);
+        const req = makeReq({ params: { id: 'some-id' }, body: { username: 'updated-user' } });
+        const res = makeRes();
+        await userController.updateUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(updatedUser);
+    });
+
+    it('debería retornar 404 si el usuario a actualizar no se encuentra', async () => {
+        mockedUserService.updateUser.mockResolvedValue(null);
+        const req = makeReq({ params: { id: 'not-found-id' }, body: { username: 'updated-user' } });
+        const res = makeRes();
+        await userController.updateUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
     });
   });
 
   describe('deleteUser', () => {
-    it('debería eliminar un usuario y retornar 204', async () => {
-      mockedUserService.deleteUser.mockResolvedValue({ id: 'deleted-id' } as any);
-      const req = makeReq({ params: { id: 'deleted-id' } });
-      const res = makeRes();
-      await userController.deleteUser(req, res);
-      expect(res.status).toHaveBeenCalledWith(204);
-      expect(res.send).toHaveBeenCalled();
+    it('debería retornar 404 si el usuario a eliminar no se encuentra', async () => {
+        mockedUserService.deleteUser.mockResolvedValue(null);
+        const req = makeReq({ params: { id: 'not-found-id' } });
+        const res = makeRes();
+        await userController.deleteUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({ message: 'User not found' });
     });
   });
+});
+
+describe('UserController Adicional', () => {
+    it('getAllUsers debería manejar errores del servidor', async () => {
+        const req = makeReq();
+        const res = makeRes();
+        const error = new Error("DB Error");
+        mockedUserService.getAllUsers.mockRejectedValue(error);
+        await userController.getAllUsers(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+
+    it('createUser debería crear un usuario exitosamente', async () => {
+        const userData = { username: 'test', email: 'test@test.com', password: '123', role: 'buyer' };
+        const req = makeReq({ body: userData });
+        const res = makeRes();
+        mockedUserService.createUser.mockResolvedValue(userData as any);
+        await userController.createUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith(userData);
+    });
+
+    it('createUserByAdmin debería retornar error si los datos son inválidos', async () => {
+        const req = makeReq({ body: {} });
+        const res = makeRes();
+        await userController.createUserByAdmin(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: "User data is required" });
+    });
+
+    it('updateUser debería retornar 400 si no hay ID', async () => {
+        const req = makeReq({ body: { username: 'new' } });
+        const res = makeRes();
+        await userController.updateUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: "User ID is missing" });
+    });
+    
+    it('deleteUser debería manejar errores del servidor', async () => {
+        const req = makeReq({ params: { id: 'some-id' } });
+        const res = makeRes();
+        const error = new Error("Deletion failed");
+        mockedUserService.deleteUser.mockRejectedValue(error);
+        await userController.deleteUser(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
 });

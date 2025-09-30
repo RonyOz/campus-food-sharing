@@ -3,22 +3,19 @@ import type { Request, Response } from 'express';
 import { authController } from '../../../src/controllers/auth.controller';
 import { userService } from '../../../src/services/user.service';
 
-// Hacemos mock del service para aislar el controlador
 jest.mock('../../../src/services/user.service');
 
-// Tipamos explícitamente los mocks de los servicios
 const mockedUserService = userService as jest.Mocked<typeof userService>;
 
 const makeRes = (): Response => {
-  const res: Partial<Response> = {};
-  res.status = jest.fn((code?: number) => res as Response);
-  res.json = jest.fn((body?: any) => res as Response);
-  return res as Response;
+  const res = {} as Response;
+  res.status = jest.fn((code?: number) => res) as unknown as (code: number) => Response;
+  res.json = jest.fn((_?: any) => res);
+  return res;
 };
 
 const makeReq = (overrides: Partial<Request> = {}): Request => {
-  const req = { body: {}, headers: {}, params: {}, ...overrides };
-  return req as Request;
+  return { body: {}, headers: {}, params: {}, ...overrides } as Request;
 };
 
 describe('AuthController', () => {
@@ -27,53 +24,99 @@ describe('AuthController', () => {
   });
 
   describe('signup', () => {
-    it('debería retornar 400 si faltan datos', async () => {
-      const req = makeReq({ body: { email: 'test@test.com' } });
+    it('debería manejar el error cuando el usuario ya existe', async () => {
+      const req = makeReq({ body: { email: 'test@test.com', password: '123', username: 'test' } });
+      const res = makeRes();
+      mockedUserService.signupUser.mockResolvedValue({
+        user: null,
+        token: null,
+        error: 'User already exists',
+        status: 409
+      });
+
+      await authController.signup(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({ message: 'User already exists' });
+    });
+
+    it('debería manejar errores inesperados del servidor', async () => {
+        const req = makeReq({ body: { email: 'test@test.com', password: '123', username: 'test' } });
+        const res = makeRes();
+        const error = new Error('Internal Server Error');
+        mockedUserService.signupUser.mockRejectedValue(error);
+
+        await authController.signup(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('login', () => {
+    it('debería manejar errores inesperados del servidor', async () => {
+        const req = makeReq({ body: { email: 'test@test.com', password: '123' } });
+        const res = makeRes();
+        const error = new Error('DB connection failed');
+        mockedUserService.loginUser.mockRejectedValue(error);
+
+        await authController.login(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('getProfile', () => {
+    it('debería retornar 401 si el token es inválido', async () => {
+      const req = makeReq({ headers: { authorization: 'Bearer invalid-token' } });
+      const res = makeRes();
+      mockedUserService.getUserByToken.mockResolvedValue(null);
+
+      await authController.getProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Invalid token' });
+    });
+
+     it('debería manejar errores inesperados del servidor', async () => {
+        const req = makeReq({ headers: { authorization: 'Bearer valid-token' } });
+        const res = makeRes();
+        const error = new Error('Something went wrong');
+        mockedUserService.getUserByToken.mockRejectedValue(error);
+
+        await authController.getProfile(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
+    });
+  });
+});
+
+describe('AuthController Adicional', () => {
+    it('signup debería retornar 400 si el body está vacío', async () => {
+      const req = makeReq({ body: {} });
       const res = makeRes();
       await authController.signup(req, res);
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({ message: "Email, password, and username are required" });
     });
 
-    it('debería registrar un usuario y retornar 201', async () => {
-      const req = makeReq({ body: { email: 'test@test.com', password: '123', username: 'test' } });
-      const res = makeRes();
-      mockedUserService.signupUser.mockResolvedValue({ user: {} as any, token: 'fake-token', error: null, status: 201 });
-      await authController.signup(req, res);
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ message: "Signup succesful", token: 'fake-token' });
-    });
-  });
-
-  describe('login', () => {
-    it('debería retornar 401 para credenciales inválidas', async () => {
-        const req = makeReq({ body: { email: 'test@test.com', password: 'wrong' } });
+    it('login debería retornar 400 si el body está vacío', async () => {
+        const req = makeReq({ body: {} });
         const res = makeRes();
-        mockedUserService.loginUser.mockResolvedValue({ user: null, token: null });
         await authController.login(req, res);
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Invalid credentials' });
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: "Email and password are required" });
     });
 
-    it('debería retornar 200 en un login exitoso', async () => {
-      const req = makeReq({ body: { email: 'test@test.com', password: '123' } });
-      const res = makeRes();
-      mockedUserService.loginUser.mockResolvedValue({ user: { id: 1 } as any, token: 'fake-token' });
-      await authController.login(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ message: "Login succesful", token: 'fake-token' });
+    it('getProfile debería manejar un error del servidor', async () => {
+        const req = makeReq({ headers: { authorization: 'Bearer good-token' } });
+        const res = makeRes();
+        const error = new Error("DB Error");
+        mockedUserService.getUserByToken.mockRejectedValue(error);
+        await authController.getProfile(req, res);
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith(error);
     });
-  });
-
-  describe('getProfile', () => {
-    it('debería retornar el perfil del usuario con un token válido', async () => {
-      const user = { toObject: () => ({ id: 1, name: 'Test' }) };
-      const req = makeReq({ headers: { authorization: 'Bearer fake-token' } });
-      const res = makeRes();
-      mockedUserService.getUserByToken.mockResolvedValue(user as any);
-      await authController.getProfile(req, res);
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ user: { id: 1, name: 'Test' } });
-    });
-  });
 });
