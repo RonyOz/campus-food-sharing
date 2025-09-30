@@ -76,6 +76,13 @@ class UserController {
 			if (!updates || Object.keys(updates).length === 0) {
 				return res.status(400).json({ message: "Update data is required" });
 			}
+
+			const user = (req as any).user;
+
+			if (user.id !== userId && user.role !== 'admin') {
+				return res.status(403).json({ message: "Forbidden: You can only update your own profile" });
+			}
+
 			const updated = await userService.updateUser(userId, updates);
 
 			if (!updated) {
